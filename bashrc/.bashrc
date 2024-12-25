@@ -7,8 +7,9 @@
 eval "$(starship init bash)"
 [[ $- != *i* ]] && return
 
-alias ls='ls --color=auto'
+alias ls='ls -l --color=auto'
 alias grep='grep --color=auto'
+alias neofetch='fastfetch'
 PS1='[\u@\h \W]\$ '
 export EDITOR=/usr/bin/nvim
 
