@@ -1,0 +1,6 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/lua-language-server/master/meta/setting/schema.json",
+  "workspace.library": [
+    "/usr/share/nvim/runtime/lua"
+  ]
+}

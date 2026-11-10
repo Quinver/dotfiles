@@ -1,0 +1,37 @@
+[credential "https://github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/usr/bin/gh auth git-credential
+[user]
+	email = quinver15@gmail.com
+	name = quinver
+[init]
+	defaultBranch = main
+[pull]
+	rebase = true
+[rebase]
+	autoStash = true
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+[rerere]
+	enabled = true
+[merge]
+	conflictstyle = zdiff3
+[core]
+	pager = delta
+	editor = nvim
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	line-numbers = true
+[diff]
+	colorMoved = default
+[alias]
+	st = status -sb
+	co = checkout
+	lg = log --graph --oneline --decorate --all

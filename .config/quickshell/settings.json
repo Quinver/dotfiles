@@ -1,0 +1,137 @@
+{
+	"global": {
+		"font": "Adwaita Sans",
+		"monoFont": "JetBrainsMono Nerd Font",
+		"fontSize": 12,
+		"barHeight": 40,
+		"barOpacity": 1,
+		"panelOpacity": 1,
+		"rounding": 7,
+		"border": 1,
+		"gap": 8,
+		"pad": 10,
+		"animSpeed": 1,
+		"mode": "dark",
+		"chroma": 1,
+		"rotate": true,
+		"rotateInterval": 600,
+		"rotateOrder": "sequential",
+		"startupTheme": "last",
+		"safeTheme": "safe",
+		"clockFormat": "HH:mm",
+		"dateFormat": "ddd d MMM",
+		"workspaces": 5,
+		"applyHyprland": true,
+		"hyprBorder": 2,
+		"applyAlacritty": true,
+		"terminal": "alacritty",
+		"notifyTimeout": 6,
+		"barLeft": [
+			"Burger",
+			"Workspaces",
+			"Taskbar"
+		],
+		"barCenter": [
+			"Clock"
+		],
+		"barRight": [
+			"Media",
+			"Llm",
+			"System",
+			"Network",
+			"Bluetooth",
+			"Audio",
+			"Tray",
+			"Notifs"
+		]
+	},
+	"themes": {
+		"anime": {
+			"label": "Anime",
+			"wallpapers": "~/Pictures/Wallpapers/anime",
+			"colors": {
+				"source": "wallpaper"
+			},
+			"options": {
+				"rotateOrder": "random",
+				"rotateInterval": 60,
+				"border": 2,
+				"fontSize": 12,
+				"mode": "dark"
+			}
+		},
+		"safe": {
+			"label": "Safe",
+			"wallpapers": "~/Pictures/Wallpapers/safe",
+			"colors": {
+				"source": "mono"
+			},
+			"options": {
+				"rotateInterval": 1800,
+				"mode": "dark"
+			}
+		},
+		"ember": {
+			"label": "Ember",
+			"wallpapers": "~/Pictures/Wallpapers/ember",
+			"colors": {
+				"source": "wallpaper"
+			},
+			"options": {
+				"mode": "dark",
+				"chroma": 1.05,
+				"rotateInterval": 900,
+				"rounding": 7,
+				"animSpeed": 1.6
+			}
+		},
+		"tide": {
+			"label": "Tide",
+			"wallpapers": "~/Pictures/Wallpapers/tide",
+			"colors": {
+				"source": "wallpaper"
+			},
+			"options": {
+				"mode": "dark",
+				"rotateInterval": 900
+			}
+		},
+		"moss": {
+			"label": "Moss",
+			"wallpapers": "~/Pictures/Wallpapers/moss",
+			"colors": {
+				"source": "wallpaper"
+			},
+			"options": {
+				"mode": "dark",
+				"chroma": 0.85,
+				"rotateInterval": 900
+			}
+		},
+		"paper": {
+			"label": "Paper",
+			"wallpapers": "~/Pictures/Wallpapers/paper",
+			"colors": {
+				"source": "wallpaper"
+			},
+			"options": {
+				"mode": "light",
+				"chroma": 0.6,
+				"rotateInterval": 1800
+			}
+		},
+		"neon": {
+			"label": "Neon",
+			"wallpapers": "~/Pictures/Wallpapers/neon",
+			"colors": {
+				"source": "wallpaper"
+			},
+			"options": {
+				"mode": "dark",
+				"chroma": 1.35,
+				"border": 2,
+				"rotateInterval": 600
+			}
+		}
+	}
+}
