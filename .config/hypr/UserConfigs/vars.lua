@@ -12,6 +12,9 @@ hl.env("QT_STYLE_OVERRIDE", "kvantum")
 
 hl.env("QT_IM_MODULE", "fcitx")
 hl.env("XMODIFIERS", "@im=fcitx")
+hl.env("QT_IM_MODULES", "wayland;fcitx;ibus")
+hl.env("SDL_IM_MODULE", "fcitx")
+hl.env("GLFW_IM_MODULE", "ibus")
 
 -- User variables (was $name = value; now plain Lua locals).
 -- Because each require()'d file is its own scope, export the values

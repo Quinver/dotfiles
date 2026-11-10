@@ -11,12 +11,12 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("firefox")
 
     -- Open discord on workspace 7 silently (no focus switch).
-    hl.exec_cmd("discord", {
+    hl.exec_cmd("discord --ozone-platform-hint=auto --enable-wayland-ime --wayland-text-input-version=3", {
         workspace = "7 silent",
 
     })
     
-    hl.exec_cmd("fcitx5")
+    hl.exec_cmd("systemctl --user start fcitx5")
 
     hl.exec_cmd("hyprctl setcursor Bibata-Modern-Classic 24")
 
