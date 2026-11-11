@@ -124,17 +124,21 @@ bindSuper("L", function() return hl.dsp.focus({ direction = "right" }) end)
 bindSuper("K", function() return hl.dsp.focus({ direction = "up" }) end)
 bindSuper("J", function() return hl.dsp.focus({ direction = "down" }) end)
 
--- ── Switch workspaces (mainMod + 0-9) ──────────────────────────────────────
-for i = 1, 9 do
-    bindSuper(i, function() return hl.dsp.focus({ workspace = i }) end)
-end
-bindSuper("0", function() return hl.dsp.focus({ workspace = 10 }) end)
+-- ── Workspace keys by keycode ──────────────────────────────────────────────
+-- The number row is bound by physical key (code:10 … code:19 = the 1 … 0 keys),
+-- not by keysym, so it works on any layout. On AZERTY those keys produce
+-- & é " ' ( - è _ ç à without Shift, so binding "1".."0" would never fire.
+local function wsKey(i) return "code:" .. (9 + i) end   -- i = 1..10 (10 = the 0 key)
 
--- ── Move window to workspace (mainMod + SHIFT + 0-9) ───────────────────────
-for i = 1, 9 do
-    bindSuper("SHIFT + " .. i, function() return hl.dsp.window.move({ workspace = i }) end)
+-- ── Switch workspaces (mainMod + 1-0) ──────────────────────────────────────
+for i = 1, 10 do
+    bindSuper(wsKey(i), function() return hl.dsp.focus({ workspace = i }) end)
 end
-bindSuper("SHIFT + 0", function() return hl.dsp.window.move({ workspace = 10 }) end)
+
+-- ── Move window to workspace (mainMod + SHIFT + 1-0) ───────────────────────
+for i = 1, 10 do
+    bindSuper("SHIFT + " .. wsKey(i), function() return hl.dsp.window.move({ workspace = i }) end)
+end
 
 -- ── Move window position (HJKL) ────────────────────────────────────────────
 bindSuper("SHIFT + H", function() return hl.dsp.window.move({ direction = "left" }) end)
