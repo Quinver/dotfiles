@@ -53,7 +53,7 @@ Singleton {
 		terminal: "alacritty",
 		notifyTimeout: 6,
 		llmContainer: "qwen-llamacpp",
-		llmToggle: "~/local-llm/main/toggle-llama.sh",
+		llmToggle: "~/projects/local-llm/main/toggle-llama.sh",
 		lockCommand: "",
 		iconStyle: "tinted",
 		barLeft: ["Burger", "Workspaces", "Taskbar"],

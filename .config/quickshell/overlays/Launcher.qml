@@ -202,7 +202,6 @@ LazyLoader {
 							MouseArea { anchors.fill: parent; onClicked: win.activate(row.index) }
 						}
 
-						}
 					}
 				}
 

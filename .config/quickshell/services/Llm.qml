@@ -12,7 +12,7 @@ Singleton {
 	id: root
 
 	readonly property string container: Settings.opt("llmContainer", "qwen-llamacpp")
-	readonly property string script: Settings.expand(Settings.opt("llmToggle", "~/local-llm/main/toggle-llama.sh"))
+	readonly property string script: Settings.expand(Settings.opt("llmToggle", "~/projects/local-llm/main/toggle-llama.sh"))
 	property string state: "off"
 	property bool available: false
 	property int _fast: 0           // fast polls left after a toggle/restart
