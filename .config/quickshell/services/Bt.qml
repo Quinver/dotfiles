@@ -10,6 +10,8 @@ import qs.config
 // `available` is false when there is no adapter at all. If rfkill has the radio
 // soft-blocked, setEnabled(true) first runs `rfkill unblock bluetooth`
 // (/dev/rfkill is writable by the user session via an ACL on this machine).
+// Discovery stops by itself after 30 s. `devices` holds paired devices, `newDevices`
+// the named unpaired ones seen while scanning; pairAndConnect() pairs, trusts, connects.
 Singleton {
 	id: root
 
@@ -20,6 +22,8 @@ Singleton {
 	readonly property bool blocked: adapter ? adapter.state === BluetoothAdapterState.Blocked : false
 	// Connected -> paired -> others; rebuilt on membership / state / name changes.
 	property var devices: []
+	property var newDevices: []
+	property string pendingPair: ""   // address of a device being paired + trusted + connected
 	readonly property int connectedCount: devices.filter(d => d.connected).length
 
 	function setEnabled(on) {
@@ -28,6 +32,12 @@ Singleton {
 		else adapter.enabled = on;
 	}
 	function setDiscovering(on) { if (adapter && adapter.enabled) adapter.discovering = on; }
+	Timer { interval: 30000; running: root.discovering; onTriggered: root.setDiscovering(false) }
+
+	function pairAndConnect(device) {
+		pendingPair = device.address;
+		device.pair();
+	}
 
 	// 0..100, or -1 when the device reports no battery.
 	function battery(device) { return device.batteryAvailable ? Math.round(device.battery * 100) : -1; }
@@ -57,12 +67,16 @@ Singleton {
 
 	function rebuild() {
 		var list = adapter ? adapter.devices.values : [];
-		var out = list.filter(d => d.paired || (d.name && d.name !== d.address.replace(/:/g, "-")));
-		out.sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || a.name.localeCompare(b.name));
-		var key = out.map(d => d.address + (d.connected ? "c" : "") + (d.paired ? "p" : "") + d.name).join("|");
+		var named = list.filter(d => d.name && d.name !== d.address.replace(/:/g, "-"));
+		var out = list.filter(d => d.paired);
+		var fresh = named.filter(d => !d.paired);
+		out.sort((a, b) => (b.connected - a.connected) || a.name.localeCompare(b.name));
+		fresh.sort((a, b) => a.name.localeCompare(b.name));
+		var key = out.concat(fresh).map(d => d.address + (d.connected ? "c" : "") + (d.paired ? "p" : "") + d.name).join("|");
 		if (key === _key) return;
 		_key = key;
 		devices = out;
+		newDevices = fresh;
 	}
 	property string _key: "\0"
 	onAdapterChanged: rebuild()
@@ -78,7 +92,17 @@ Singleton {
 			required property var modelData
 			target: modelData
 			function onConnectedChanged() { rebuildTimer.restart(); }
-			function onPairedChanged() { rebuildTimer.restart(); }
+			function onPairedChanged() {
+				rebuildTimer.restart();
+				if (modelData.paired && root.pendingPair === modelData.address) {
+					root.pendingPair = "";
+					modelData.trusted = true;
+					modelData.connect();
+				}
+			}
+			function onPairingChanged() {
+				if (!modelData.pairing && !modelData.paired && root.pendingPair === modelData.address) root.pendingPair = "";
+			}
 			function onNameChanged() { rebuildTimer.restart(); }
 		}
 	}

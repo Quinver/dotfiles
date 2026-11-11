@@ -12,11 +12,12 @@ Singleton {
 
 	property var files: []                 // absolute paths, sorted
 	property int index: 0
-	readonly property string current: files.length ? files[Math.max(0, Math.min(index, files.length - 1))] : ""
+	property string previewPath: ""      // transient preview from Theme Studio, never persisted
+	readonly property string current: previewPath !== "" ? previewPath : files.length ? files[Math.max(0, Math.min(index, files.length - 1))] : ""
 	readonly property string dir: Settings.expand(Settings.theme.wallpapers || "")
 	readonly property var colorCfg: Settings.theme.colors || ({})
 	readonly property string colorSource: colorCfg.source || "wallpaper"   // wallpaper | seed | mono
-	readonly property bool rotating: Settings.opt("rotate", true) && !Settings.state.rotatePaused && files.length > 1
+	readonly property bool rotating: !Settings.previewing && previewPath === "" && Settings.opt("rotate", true) && !Settings.state.rotatePaused && files.length > 1
 	readonly property int interval: Math.max(5, Settings.opt("rotateInterval", 600))
 	property string extracted: ""
 	// Hex colour every palette is generated from.
@@ -58,6 +59,7 @@ Singleton {
 	function togglePause() { Settings.setState("rotatePaused", !Settings.state.rotatePaused); }
 
 	function _remember() {
+		if (Settings.previewing || previewPath !== "") return;
 		var m = Object.assign({}, Settings.state.wallpapers || {});
 		m[Settings.themeName] = current;
 		Settings.setState("wallpapers", m);

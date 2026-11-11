@@ -154,7 +154,7 @@ echo "hypr $(hyprctl version 2>/dev/null | head -1 | sed -E 's/^Hyprland ([^ ]+)
 
 	Timer {
 		id: tick
-		interval: Ui.popout === "system" ? 2000 : 5000   // slow down while the panel is closed
+		interval: Ui.popout === "system" || Ui.overlay === "tasks" ? 2000 : 5000   // slow down while nothing shows it
 		repeat: true
 		triggeredOnStart: true
 		onTriggered: if (!sampler.running) sampler.running = true

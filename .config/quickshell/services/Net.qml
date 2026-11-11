@@ -9,6 +9,9 @@ import Quickshell.Networking
 // Bars read kind / connected / strength; NetworkPanel additionally calls
 // scan(true|false) while open and holds a "watcher" (watchers++ / watchers--)
 // so /proc/net/dev is only sampled (every 2 s) while something shows the rates.
+// VPN: WireGuard / VPN profiles via nmcli, refreshed from `nmcli monitor` events (no polling).
+// Speed test: Ookla CLI run by a service Process so closing the popout does not kill it;
+// the last result stays in memory.
 // signalStrength is already 0..1 (checked on this machine).
 Singleton {
 	id: root
@@ -182,4 +185,80 @@ Singleton {
 	onWatchersChanged: if (watchers > 0 && iface) ipProc.running = true
 	// Address can change without the interface changing (DHCP renew, new connection).
 	onConnectedChanged: if (iface) ipProc.running = true
+
+	// ---- VPN ----
+	property var vpns: []   // [{ name, active }]
+	readonly property string vpnActive: {
+		for (var i = 0; i < vpns.length; i++) if (vpns[i].active) return vpns[i].name;
+		return "";
+	}
+
+	function setVpn(name, on) {
+		var q = n => "'" + n.replace(/'/g, "'\\''") + "'";
+		var cmd = "";
+		if (on && vpnActive && vpnActive !== name) cmd += "nmcli con down id " + q(vpnActive) + "; ";
+		cmd += "nmcli con " + (on ? "up" : "down") + " id " + q(name);
+		vpnSet.command = ["sh", "-c", cmd];
+		vpnSet.running = true;
+	}
+
+	Process { id: vpnSet; onExited: vpnProc.running = true }
+	Process {
+		id: vpnProc
+		command: ["nmcli", "-t", "-f", "NAME,TYPE,ACTIVE", "con", "show"]
+		running: true
+		stdout: StdioCollector {
+			onStreamFinished: {
+				var out = [];
+				text.split("\n").forEach(l => {
+					var f = l.split(":");
+					if (f.length < 3 || (f[f.length - 2] !== "wireguard" && f[f.length - 2] !== "vpn")) return;
+					out.push({ name: f.slice(0, -2).join(":").replace(/\\/g, ""), active: f[f.length - 1] === "yes" });
+				});
+				out.sort((a, b) => a.name.localeCompare(b.name));
+				var key = JSON.stringify(out);
+				if (key !== root._vpnKey) { root._vpnKey = key; root.vpns = out; }
+			}
+		}
+	}
+	property string _vpnKey: ""
+	Timer { id: vpnTimer; interval: 400; onTriggered: if (!vpnProc.running) vpnProc.running = true }
+	Process {
+		command: ["nmcli", "monitor"]
+		running: true
+		stdout: SplitParser { onRead: vpnTimer.restart() }
+	}
+
+	// ---- speed test ----
+	property bool speedRunning: false
+	property string speedError: ""
+	property var speedResult: null   // { down, up (Mbps), ping (ms), server, isp, time }
+
+	function runSpeedtest() {
+		if (speedRunning) return;
+		speedError = "";
+		speedRunning = true;
+		speedProc.running = true;
+	}
+
+	Process {
+		id: speedProc
+		command: ["speedtest", "-f", "json", "--accept-license", "--accept-gdpr"]
+		stdout: StdioCollector {
+			onStreamFinished: {
+				try {
+					var j = JSON.parse(text);
+					root.speedResult = {
+						down: j.download.bandwidth * 8 / 1e6,
+						up: j.upload.bandwidth * 8 / 1e6,
+						ping: j.ping.latency,
+						server: j.server.name,
+						isp: j.isp,
+						time: new Date()
+					};
+				} catch (e) { root.speedError = "Speed test failed"; }
+			}
+		}
+		onExited: root.speedRunning = false
+	}
 }

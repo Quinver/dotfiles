@@ -5,7 +5,7 @@ import qs.services
 import qs.widgets
 
 // Network popout: wifi toggle, status card with live rates, wifi list with
-// inline password entry. Scanning and rate sampling only run while it is open.
+// inline password entry, WireGuard/VPN toggles, speed test. Scanning and rate sampling only run while it is open.
 Column {
 	id: root
 
@@ -25,6 +25,12 @@ Column {
 		if (network.connected) Net.disconnect(network);
 		else if (network.known || !Net.secured(network)) { root.pwFor = ""; Net.connect(network, ""); }
 		else root.pwFor = root.pwFor === network.name ? "" : network.name;
+	}
+
+	// "wg-NL-FREE-2" -> "NL"; falls back to "VPN".
+	function country(name) {
+		var m = /^[a-z]+-([A-Za-z]{2})-/.exec(name);
+		return m ? m[1].toUpperCase() : "VPN";
 	}
 
 	function kindText() {
@@ -164,6 +170,128 @@ Column {
 						root.pwFor = "";
 					}
 				}
+			}
+		}
+	}
+
+	Header { width: parent.width; title: "VPN" }
+
+	Txt {
+		visible: Net.vpns.length === 0
+		width: parent.width
+		height: Theme.rowHeight
+		horizontalAlignment: Text.AlignHCenter
+		muted: true
+		text: "No VPN profiles"
+	}
+
+	Repeater {
+		model: Net.vpns
+		delegate: ListItem {
+			id: vrow
+			required property var modelData
+			width: root.width
+			icon: Icons.lock
+			iconColor: modelData.active ? Theme.ok : Theme.fgDim
+			title: modelData.name
+			subtitle: root.country(modelData.name) + (modelData.active ? " · Connected" : "")
+			selected: modelData.active
+			onClicked: Net.setVpn(modelData.name, !modelData.active)
+			Toggle { checked: vrow.modelData.active; onToggled: v => Net.setVpn(vrow.modelData.name, v) }
+		}
+	}
+
+	Header {
+		width: parent.width
+		title: "Speed test"
+		Btn {
+			text: Net.speedResult ? "Run again" : "Run test"
+			enabled: !Net.speedRunning
+			implicitHeight: 24
+			onClicked: Net.runSpeedtest()
+		}
+	}
+
+	Column {
+		visible: Net.speedRunning
+		width: parent.width
+		spacing: Theme.spacing
+		Txt { text: "Testing…"; dim: true }
+		Rectangle {
+			width: parent.width
+			height: 3
+			color: Theme.surfaceTop
+			clip: true
+			Rectangle {
+				id: sweep
+				width: parent.width * 0.3
+				height: parent.height
+				color: Theme.primary
+				SequentialAnimation on x {
+					running: Net.speedRunning
+					loops: Animation.Infinite
+					NumberAnimation { from: -sweep.width; to: sweep.parent.width; duration: Theme.animSlow * 4; easing.type: Easing.InOutQuad }
+				}
+			}
+		}
+	}
+
+	Txt {
+		visible: !Net.speedRunning && Net.speedError !== ""
+		width: parent.width
+		text: Net.speedError
+		color: Theme.error
+		size: Theme.fontSmall
+	}
+
+	Txt {
+		visible: !Net.speedRunning && !Net.speedResult && Net.speedError === ""
+		width: parent.width
+		height: Theme.rowHeight
+		horizontalAlignment: Text.AlignHCenter
+		muted: true
+		text: "No test run yet"
+	}
+
+	Box {
+		visible: !Net.speedRunning && Net.speedResult !== null
+		width: parent.width
+		level: 2
+		small: true
+		implicitHeight: res.implicitHeight + Theme.pad * 2
+
+		Column {
+			id: res
+			anchors.fill: parent
+			anchors.margins: Theme.pad
+			spacing: Theme.spacing
+			Row {
+				width: parent.width
+				Repeater {
+					model: Net.speedResult ? [
+						{ label: "Download", value: Net.speedResult.down.toFixed(0), unit: "Mbps", glyph: Icons.arrowDown, tint: Theme.ok },
+						{ label: "Upload", value: Net.speedResult.up.toFixed(0), unit: "Mbps", glyph: Icons.arrowUp, tint: Theme.primary },
+						{ label: "Ping", value: Net.speedResult.ping.toFixed(0), unit: "ms", glyph: Icons.clock, tint: Theme.fgDim }
+					] : []
+					delegate: Column {
+						required property var modelData
+						width: res.width / 3
+						Row {
+							spacing: 4
+							Icon { glyph: modelData.glyph; size: Theme.fontSmall; color: modelData.tint; anchors.verticalCenter: parent.verticalCenter }
+							Txt { text: modelData.label; muted: true; size: Theme.fontSmall }
+						}
+						Txt { text: modelData.value; size: Theme.fontHuge; bold: true; mono: true }
+						Txt { text: modelData.unit; muted: true; size: Theme.fontSmall }
+					}
+				}
+			}
+			Txt {
+				width: parent.width
+				elide: Text.ElideRight
+				dim: true
+				size: Theme.fontSmall
+				text: Net.speedResult ? Net.speedResult.server + " · " + Net.speedResult.isp + " · " + Qt.formatTime(Net.speedResult.time, "HH:mm") : ""
 			}
 		}
 	}

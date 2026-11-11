@@ -4,7 +4,8 @@ import qs.config
 import qs.services
 import qs.widgets
 
-// Bluetooth popout: power toggle, scan, device list. Discovery runs only while open.
+// Bluetooth popout: power toggle, scan (auto-stops after 30 s), paired devices with
+// trust / forget, and a "New devices" list with Pair. Discovery stops when closed.
 Column {
 	id: root
 
@@ -20,7 +21,6 @@ Column {
 	function activate(d) {
 		root.forgetFor = "";
 		if (d.pairing) d.cancelPair();
-		else if (!d.paired) d.pair();
 		else if (d.connected) d.disconnect();
 		else d.connect();
 	}
@@ -39,19 +39,19 @@ Column {
 	}
 
 	Txt {
-		visible: list.count === 0
+		visible: list.count === 0 || !Bt.enabled
 		width: parent.width
 		height: Theme.rowHeight
 		horizontalAlignment: Text.AlignHCenter
 		muted: true
-		text: !Bt.available ? "No adapter found" : !Bt.enabled ? "Bluetooth is off" : "No devices — press Scan"
+		text: !Bt.available ? "No adapter found" : !Bt.enabled ? "Bluetooth is off" : "No paired devices"
 	}
 
 	ListView {
 		id: list
 		visible: count > 0
 		width: parent.width
-		height: Math.min(contentHeight, 320)
+		height: Math.min(contentHeight, 280)
 		clip: true
 		model: Bt.enabled ? Bt.devices : []
 
@@ -63,14 +63,63 @@ Column {
 			width: ListView.view.width
 			icon: Bt.iconFor(modelData)
 			iconColor: modelData.connected ? Theme.primary : Theme.fgDim
-			title: asking ? "Forget? click again" : modelData.name || modelData.address
+			title: modelData.name || modelData.address
 			subtitle: Bt.stateText(modelData) + (bat >= 0 ? " · " + bat + "%" : "")
 			selected: modelData.connected
-			onClicked: if (asking) root.forgetFor = ""; else root.activate(modelData)
-			onRightClicked: {
-				if (!modelData.paired) return;
-				if (asking) { modelData.forget(); root.forgetFor = ""; }
-				else { root.forgetFor = modelData.address; forgetTimer.restart(); }
+			onClicked: root.activate(modelData)
+			Btn {
+				flat: true
+				icon: Icons.star
+				checked: row.modelData.trusted
+				implicitHeight: 24
+				onClicked: row.modelData.trusted = !row.modelData.trusted
+			}
+			Btn {
+				flat: true
+				danger: row.asking
+				icon: row.asking ? "" : Icons.trash
+				text: row.asking ? "Forget?" : ""
+				implicitHeight: 24
+				onClicked: {
+					if (row.asking) { row.modelData.forget(); root.forgetFor = ""; }
+					else { root.forgetFor = row.modelData.address; forgetTimer.restart(); }
+				}
+			}
+		}
+	}
+
+	Header { visible: Bt.enabled; width: parent.width; title: "New devices" }
+
+	Txt {
+		visible: Bt.enabled && fresh.count === 0
+		width: parent.width
+		height: Theme.rowHeight
+		horizontalAlignment: Text.AlignHCenter
+		muted: true
+		text: Bt.discovering ? "Searching…" : "None found — press Scan"
+	}
+
+	ListView {
+		id: fresh
+		visible: Bt.enabled && count > 0
+		width: parent.width
+		height: Math.min(contentHeight, 200)
+		clip: true
+		model: Bt.enabled ? Bt.newDevices : []
+
+		delegate: ListItem {
+			id: frow
+			required property var modelData
+			width: ListView.view.width
+			icon: Bt.iconFor(modelData)
+			title: modelData.name
+			subtitle: modelData.pairing ? "Pairing…" : modelData.address
+			onClicked: if (!modelData.pairing) Bt.pairAndConnect(modelData)
+			Btn {
+				text: frow.modelData.pairing ? "Cancel" : "Pair"
+				accent: !frow.modelData.pairing
+				implicitHeight: 24
+				onClicked: frow.modelData.pairing ? frow.modelData.cancelPair() : Bt.pairAndConnect(frow.modelData)
 			}
 		}
 	}

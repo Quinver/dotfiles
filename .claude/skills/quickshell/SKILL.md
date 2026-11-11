@@ -21,7 +21,7 @@ From-scratch Quickshell 0.3.2 (`qs`, Qt 6) config for Hyprland 0.57 (**Lua confi
 ## Map of the code
 
 ```
-shell.qml            entry: per-screen Background/Bar/PopoutHost, overlays, IpcHandler "shell"
+shell.qml            entry: per-screen Background/DesktopWidgets (desktop/, Bottom layer, opts desktopClock/Media/System/Position/Backdrop/Screen)/Bar/PopoutHost, overlays, IpcHandler "shell"
 config/Settings.qml  Settings.opt(key, fallback) = theme option > global > fallback; setTheme/setOption/setThemeOption/setState
 config/Theme.qml     resolved tokens: colours (bg surface surfaceHi surfaceTop outline outlineDim fg fgDim fgMuted
                      primary onPrimary primaryDim secondary tertiary error warn ok), rounding, pad, spacing, gap,
@@ -32,11 +32,11 @@ services/*.qml       singletons (Wallpapers, SystemTheme, Audio, Net, Bt, Media,
 widgets/*.qml        Txt Icon Box Btn Toggle Slider Field Meter Graph ListItem Header Sep BarButton AppIcon
 bar/<Name>Module.qml loaded by name from barLeft/barCenter/barRight in settings
 popouts/<Name>Panel.qml  opened via Ui.toggle("name") / BarButton { popout: "name" }; host draws frame+padding
-overlays/*.qml       Launcher, PowerMenu, Osd, NotificationPopups (listed in shell.qml)
+overlays/*.qml       Launcher, PowerMenu, Osd, NotificationPopups, ThemeStudio, Overview, Keys (parses keybinds.lua via services/Keybinds), Capture (services/Capture: grim/slurp/satty/wf-recorder), Mixer (listed in shell.qml)
 ```
 
-IPC: `qs ipc call shell <popout|overlay|close|theme|nextTheme|safe|wallpaper|currentTheme> [arg]`. Keybinds live in `~/.config/hypr/UserConfigs/keybinds.lua` (Super+A control centre, N notifications, X power, B safe, T next theme, Shift+W next wallpaper, Shift+D launcher, Shift+V clipboard history popout (cliphist via services/Clipboard.qml), Ctrl+S satty region screenshot, Shift+C hyprpicker). A popout opened by keybind/IPC appears under its bar button on the focused monitor (BarButtons with `popout:` register in `Ui.buttons`); with no such button it falls back to the right edge.
-SystemTheme pushes the palette to Hyprland borders/rounding (`hyprctl eval`, Lua) and Alacritty (`~/.cache/qshell/alacritty.toml`) and writes `~/.cache/qshell/colors.json`, plus adw-gtk3/libadwaita `@define-color` overrides to `~/.config/gtk-{3,4}.0/gtk.css` (global option `gtkTint`, default true) and gsettings color-scheme/gtk-theme on mode change.
+IPC: `qs ipc call shell <popout|overlay|close|theme|nextTheme|safe|wallpaper|currentTheme> [arg]`. Keybinds live in `~/.config/hypr/UserConfigs/keybinds.lua` (Super+A control centre, N notifications, X power, B safe, T next theme, Shift+W next wallpaper, Shift+D launcher, Shift+V clipboard history popout (cliphist via services/Clipboard.qml), Ctrl+S satty region screenshot, Shift+C hyprpicker, Tab overview, / keybind cheatsheet, M mixer, Shift+G games overlay, Shift+P docker overlay, Ctrl+Shift+Esc tasks overlay, Print capture overlay). A popout opened by keybind/IPC appears under its bar button on the focused monitor (BarButtons with `popout:` register in `Ui.buttons`); with no such button it falls back to the right edge.
+SystemTheme pushes the palette to Hyprland borders/rounding (`hyprctl eval`, Lua) and Alacritty (`~/.cache/qshell/alacritty.toml`) and writes `~/.cache/qshell/colors.json`, plus GTK colours (global option `gtkTint`, default true): GTK3 via generated themes `~/.local/share/themes/qshell-{a,b}` (@import adw-gtk3[-dark] + `@define-color`), swapping `gtk-theme` between them so running apps recolour live; GTK4 via `~/.config/gtk-4.0/gtk.css` (applies when the app restarts) and gsettings color-scheme/gtk-theme on mode change.
 
 ## Themes
 

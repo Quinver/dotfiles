@@ -27,6 +27,12 @@ LazyLoader {
 		readonly property int rowH: Theme.rowHeight + 8
 		readonly property string query: field.text
 		property int sel: 0
+		// Last pointer position seen over the list. Hover only changes the
+		// selection when the pointer has actually moved, so a cursor that
+		// happens to rest where the launcher opens (or where rows shift to
+		// while typing) doesn't steal the selection.
+		property point lastHover: Qt.point(-1, -1)
+		property bool mouseMoved: false
 
 		// Rows: { kind: "app" | "calc" | "cmd", title, subtitle, entry }
 		readonly property var rows: {
@@ -65,7 +71,7 @@ LazyLoader {
 
 		function focusField() { field.focusInput(); }
 		Component.onCompleted: focusField()
-		onVisibleChanged: if (visible) focusField()
+		onVisibleChanged: if (visible) { lastHover = Qt.point(-1, -1); mouseMoved = false; focusField(); }
 		onWindowConnected: focusField()
 
 		MouseArea { anchors.fill: parent; onClicked: Ui.close() }
@@ -114,6 +120,21 @@ LazyLoader {
 					currentIndex: win.sel
 					boundsBehavior: Flickable.StopAtBounds
 
+					// One handler for the whole list: selection follows the
+					// pointer only once it has really moved since opening.
+					HoverHandler {
+						onPointChanged: {
+							if (!hovered) return;
+							const p = point.scenePosition;
+							const prev = win.lastHover;
+							win.lastHover = Qt.point(p.x, p.y);
+							if (prev.x < 0 || (prev.x === p.x && prev.y === p.y)) return;
+							win.mouseMoved = true;
+							const i = list.indexAt(point.position.x + list.contentX, point.position.y + list.contentY);
+							if (i >= 0) win.sel = i;
+						}
+					}
+
 					delegate: Item {
 						id: row
 						required property var modelData
@@ -128,6 +149,7 @@ LazyLoader {
 							title: row.modelData.title
 							subtitle: row.modelData.subtitle
 							selected: row.index === win.sel
+							hoverHighlight: win.mouseMoved
 							onClicked: win.activate(row.index)
 
 							leading: [
@@ -180,7 +202,7 @@ LazyLoader {
 							MouseArea { anchors.fill: parent; onClicked: win.activate(row.index) }
 						}
 
-						HoverHandler { onPointChanged: win.sel = row.index }
+						}
 					}
 				}
 

@@ -23,10 +23,13 @@ Singleton {
 	readonly property var sources: Pipewire.nodes.values.filter(n => !n.isStream && n.type === PwNodeType.AudioSource)
 	readonly property var streams: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioOutStream && String(n.name || "").indexOf("speech-dispatcher") !== 0)
 
+	// Apps recording input (minus volume-control peak-monitor helpers).
+	readonly property var inStreams: Pipewire.nodes.values.filter(n => n && n.type === PwNodeType.AudioInStream && !/^(speech-dispatcher|pavucontrol|pwvucontrol|quickshell)/i.test(String(n.name || "")) && !/^(pavucontrol|pwvucontrol|quickshell)/i.test(String((n.properties || ({}))["application.name"] || "")))
+
 	// Incremented on output volume / mute changes after startup.
 	property int osdTick: 0
 
-	PwObjectTracker { objects: [root.sink, root.source].concat(root.sinks, root.sources, root.streams) }
+	PwObjectTracker { objects: [root.sink, root.source].concat(root.sinks, root.sources, root.streams, root.inStreams) }
 
 	function label(node) {
 		return node ? (node.description || node.nickname || node.name) : "";

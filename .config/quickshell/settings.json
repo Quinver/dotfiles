@@ -41,9 +41,16 @@
 			"Network",
 			"Bluetooth",
 			"Audio",
+			"Ime",
 			"Tray",
 			"Notifs"
-		]
+		],
+		"gtkTint": true,
+		"desktopClock": true,
+		"desktopMedia": true,
+		"desktopSystem": true,
+		"desktopPosition": "center-left",
+		"desktopBackdrop": false
 	},
 	"themes": {
 		"anime": {
@@ -57,7 +64,8 @@
 				"rotateInterval": 60,
 				"border": 2,
 				"fontSize": 12,
-				"mode": "dark"
+				"mode": "dark",
+				"desktopBackdrop": true
 			}
 		},
 		"safe": {

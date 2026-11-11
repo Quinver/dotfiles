@@ -12,6 +12,8 @@ Item {
 	property string subtitle: ""
 	property bool selected: false
 	property bool interactive: true
+	// Lists whose selection already follows the mouse can turn this off.
+	property bool hoverHighlight: true
 	readonly property bool hovered: mouse.containsMouse
 	default property alias trailing: right.data
 	// Put a custom leading item (e.g. an app icon) here instead of a glyph.
@@ -27,7 +29,7 @@ Item {
 		anchors.fill: parent
 		radius: Theme.roundingSmall
 		color: root.selected ? Theme.surfaceTop : Theme.surfaceHi
-		opacity: root.selected || (root.hovered && root.interactive) ? 1 : 0
+		opacity: root.selected || (root.hovered && root.interactive && root.hoverHighlight) ? 1 : 0
 	}
 
 	Rectangle {

@@ -9,7 +9,7 @@ import Quickshell.Io
 //   Settings.opt("rounding", 0)   -> current theme's option, else global, else fallback
 //   Settings.setTheme("safe")     -> switch theme
 //   Settings.setOption(k, v)      -> change a GLOBAL option (persisted)
-//   Settings.setThemeOption(k, v) -> change an option for the CURRENT theme only
+//   Settings.setThemeOption(k, v, name) -> change an option for a theme (default: current)
 //   Settings.state.x / Settings.setState("x", v)
 Singleton {
 	id: root
@@ -64,10 +64,15 @@ Singleton {
 	readonly property var global: Object.assign({}, defaults, data.global || {})
 	readonly property var themes: data.themes || ({})
 	readonly property var themeNames: Object.keys(themes)
-	readonly property string themeName: {
+	// Persisted theme, and the effective one: a transient in-memory preview
+	// (Theme Studio) wins while set. Everything restyles from themeName.
+	property string previewTheme: ""
+	readonly property bool previewing: previewTheme !== "" && themes[previewTheme] !== undefined && previewTheme !== savedThemeName
+	readonly property string savedThemeName: {
 		if (state.theme && themes[state.theme]) return state.theme;
 		return themeNames.length ? themeNames[0] : "";
 	}
+	readonly property string themeName: previewing ? previewTheme : savedThemeName
 	readonly property var theme: themes[themeName] || ({})
 	readonly property bool safeActive: themeName === global.safeTheme
 
@@ -92,15 +97,15 @@ Singleton {
 	}
 
 	function setTheme(name) {
-		if (!themes[name] || name === themeName) return;
+		if (!themes[name] || name === savedThemeName) return;
 		var s = Object.assign({}, state);
-		s.prevTheme = themeName;
+		s.prevTheme = savedThemeName;
 		s.theme = name;
 		_writeState(s);
 	}
 
 	function nextTheme() {
-		var i = themeNames.indexOf(themeName);
+		var i = themeNames.indexOf(savedThemeName);
 		if (themeNames.length) setTheme(themeNames[(i + 1) % themeNames.length]);
 	}
 
@@ -108,7 +113,7 @@ Singleton {
 	function toggleSafe() {
 		var safe = global.safeTheme;
 		if (!themes[safe]) return;
-		if (themeName === safe) {
+		if (savedThemeName === safe) {
 			var back = state.prevTheme;
 			if (!back || !themes[back] || back === safe)
 				back = themeNames.filter(n => n !== safe)[0];
@@ -131,13 +136,26 @@ Singleton {
 		_writeSettings(d);
 	}
 
-	function setThemeOption(key, value) {
+	// Set (or, with null, remove) an option override on theme `name` (default: current).
+	function setThemeOption(key, value, name) {
+		var n = name || themeName;
 		var d = JSON.parse(JSON.stringify(data));
-		if (!d.themes || !d.themes[themeName]) return;
-		if (!d.themes[themeName].options) d.themes[themeName].options = {};
-		if (value === undefined || value === null) delete d.themes[themeName].options[key];
-		else d.themes[themeName].options[key] = value;
+		if (!d.themes || !d.themes[n]) return;
+		if (!d.themes[n].options) d.themes[n].options = {};
+		if (value === undefined || value === null) delete d.themes[n].options[key];
+		else d.themes[n].options[key] = value;
 		_writeSettings(d);
+	}
+
+	// A theme's own override of `key`, or undefined when it inherits.
+	function themeOptionRaw(name, key) {
+		var t = themes[name];
+		return t && t.options ? t.options[key] : undefined;
+	}
+
+	function globalValue(key) {
+		var v = global[key];
+		return v !== undefined && v !== null ? v : defaults[key];
 	}
 
 	function _writeState(s) {

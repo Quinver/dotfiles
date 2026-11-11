@@ -3,7 +3,7 @@ import qs.config
 import qs.services
 import qs.widgets
 
-// Network status icon. Click opens the panel, middle click toggles wifi.
+// Network status icon (plus a lock while a VPN is up). Click opens the panel, middle click toggles wifi.
 BarButton {
 	property var screen
 	popout: "network"
@@ -13,4 +13,12 @@ BarButton {
 		: Net.kind === "wifi" ? (Net.strength < 0.3 ? Theme.warn : Net.strength < 0.6 ? Theme.fgDim : Theme.fg)
 		: Theme.fg
 	onMiddleClicked: Net.setWifiEnabled(!Net.wifiEnabled)
+
+	Icon {
+		visible: Net.vpnActive !== ""
+		glyph: Icons.lock
+		size: Theme.fontSmall
+		color: Theme.ok
+		anchors.verticalCenter: parent.verticalCenter
+	}
 }

@@ -56,14 +56,14 @@ bindSuper("G",      function() return hl.dsp.window.pseudo() end)  -- dwindle ps
 
 -- ── Screenshots ────────────────────────────────────────────────────────────
 bindSuper("S",
-    function() return hl.dsp.exec_cmd("grim - | wl-copy") end)
+    function() return hl.dsp.exec_cmd("grim - | wl-copy") end)   -- full screen to clipboard
 
 bindSuper("SHIFT + S",
-    function() return hl.dsp.exec_cmd([[wayfreeze & PID=$!; sleep .1; grim -g "$(slurp)" - | wl-copy; kill $PID]]) end)
+    function() return hl.dsp.exec_cmd([[wayfreeze & PID=$!; sleep .1; grim -g "$(slurp)" - | wl-copy; kill $PID]]) end)   -- region to clipboard
 
 -- Region screenshot -> satty annotation (SUPER+SHIFT+S is taken above)
 bindSuper("CTRL + S",
-    function() return hl.dsp.exec_cmd([[sh -c 'grim -g "$(slurp)" - | satty --filename - --copy-command wl-copy --early-exit']]) end, nil, false)
+    function() return hl.dsp.exec_cmd([[sh -c 'grim -g "$(slurp)" - | satty --filename - --copy-command wl-copy --early-exit']]) end, nil, false)   -- region to satty editor
 
 -- Colour picker
 bindSuper("SHIFT + C",
@@ -102,14 +102,18 @@ bindSuper("A",         shell("popout control"))      -- control centre
 bindSuper("N",         shell("popout notifications"))
 bindSuper("X",         shell("overlay power"))       -- power menu
 bindSuper("B",         shell("safe"))                -- safe theme on/off
-bindSuper("T",         shell("nextTheme"))
+bindSuper("T",         shell("overlay themes"))     -- theme studio
+bindSuper("SHIFT + T", shell("nextTheme"))
+bindSuper("COMMA",     shell("overlay settings"))   -- global settings
 bindSuper("SHIFT + W", shell("wallpaper next"))
 bindSuper("SHIFT + V", shell("popout clipboard"))   -- clipboard history (SUPER+V is float toggle)
-
--- ── Mute hover ─────────────────────────────────────────────────────────────
-bindSuper("M",
-    function() return hl.dsp.exec_cmd("~/.local/bin/toggle-app-mute") end,
-    { mouse = true })
+bindSuper("TAB",       shell("overlay overview"))   -- window overview
+bindSuper("SLASH",     shell("overlay keys"))       -- keybind cheatsheet
+bindSuper("M",         shell("overlay mixer"))      -- volume mixer
+bindSuper("SHIFT + G", shell("overlay games"))      -- game library
+bindSuper("SHIFT + P", shell("overlay docker"))      -- docker + VMs
+hl.bind("CTRL + SHIFT + ESCAPE", hl.dsp.exec_cmd("qs ipc call shell overlay tasks"))   -- task manager
+hl.bind("Print", hl.dsp.exec_cmd("qs ipc call shell overlay capture"))   -- screenshot / record
 
 -- ── Fullscreen ─────────────────────────────────────────────────────────────
 bindSuper("F", function() return hl.dsp.window.fullscreen() end)
@@ -140,10 +144,10 @@ bindSuper("SHIFT + J", function() return hl.dsp.window.move({ direction = "down"
 
 -- ── Resize window (CTRL + HJKL) ────────────────────────────────────────────
 -- Super-only: the Ctrl+Alt alias would need CTRL twice (see bindSuper).
-bindSuper("CTRL + H", function() return hl.dsp.window.resize({ x = -50, y = 0 , relative= true}) end, nil, false)
-bindSuper("CTRL + L", function() return hl.dsp.window.resize({ x = 50, y = 0, relative= true }) end, nil, false)
-bindSuper("CTRL + K", function() return hl.dsp.window.resize({ x = 0, y = -50, relative= true }) end, nil, false)
-bindSuper("CTRL + J", function() return hl.dsp.window.resize({ x = 0, y =  50, relative= true }) end, nil, false)
+bindSuper("CTRL + H", function() return hl.dsp.window.resize({ x = -50, y = 0 , relative= true}) end, nil, false)   -- shrink width
+bindSuper("CTRL + L", function() return hl.dsp.window.resize({ x = 50, y = 0, relative= true }) end, nil, false)   -- grow width
+bindSuper("CTRL + K", function() return hl.dsp.window.resize({ x = 0, y = -50, relative= true }) end, nil, false)   -- shrink height
+bindSuper("CTRL + J", function() return hl.dsp.window.resize({ x = 0, y =  50, relative= true }) end, nil, false)   -- grow height
 
 -- ── Special workspace (scratchpad) ─────────────────────────────────────────
 bindSuper("SPACE",         function() return hl.dsp.workspace.toggle_special("magic") end)

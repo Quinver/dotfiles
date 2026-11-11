@@ -109,6 +109,6 @@ Column {
 		text: "Mixer"
 		flat: true
 		width: parent.width
-		onClicked: { Quickshell.execDetached(["pwvucontrol"]); Ui.close(); }
+		onClicked: Ui.toggleOverlay("mixer")
 	}
 }

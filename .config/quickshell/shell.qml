@@ -7,6 +7,7 @@ import qs.services
 import "bar"
 import "popouts"
 import "wallpaper"
+import "desktop"
 
 ShellRoot {
 	id: shell
@@ -14,13 +15,14 @@ ShellRoot {
 	Component.onCompleted: SystemTheme.start()
 
 	Variants { model: Quickshell.screens; Background {} }
+	Variants { model: Quickshell.screens; DesktopWidgets {} }
 	Variants { model: Quickshell.screens; Bar {} }
 	Variants { model: Quickshell.screens; PopoutHost {} }
 
 	// Overlays live in overlays/<Name>.qml. They are loaded only if present so
 	// the shell still starts while one of them is broken.
 	Variants {
-		model: ["Launcher", "PowerMenu", "Osd", "NotificationPopups"]
+		model: ["Launcher", "PowerMenu", "Osd", "NotificationPopups", "ThemeStudio", "Capture", "Overview", "Keys", "Mixer", "Games", "Tasks", "Docker"]
 		Loader {
 			required property string modelData
 			source: Qt.resolvedUrl("overlays/" + modelData + ".qml")
@@ -42,6 +44,8 @@ ShellRoot {
 			else if (action === "prev") Wallpapers.prev();
 			else if (action === "pause") Wallpapers.togglePause();
 		}
+		function shot(mode: string, action: string): void { Capture.shot(mode, action); }
+		function record(): void { Capture.toggleRecord(); }
 		function currentTheme(): string { return Settings.themeName; }
 	}
 }
