@@ -1,0 +1,9 @@
+# Folders `dot sync` adds recursively, so NEW files in them get picked up.
+# Paths are relative to $HOME. Files already tracked anywhere else are
+# always synced too (via `add -u`); only list folders here.
+# Junk patterns live in ~/.dotfiles/info/exclude.
+.config/hypr
+.config/quickshell
+.config/nvim
+.config/dotfiles
+.claude/skills/quickshell

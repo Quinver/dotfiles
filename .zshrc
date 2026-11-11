@@ -28,4 +28,7 @@ alias ls='eza --icons --group-directories-first'
 alias ll='eza -la --git --icons --group-directories-first'
 alias lt='eza --tree --level=2 --icons'
 alias cat='bat --paging=never --style=plain'
-alias dot='git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
+dot() {
+  if [[ $1 == sync ]]; then shift; ~/.local/bin/dot-sync "$@"
+  else git --git-dir=$HOME/.dotfiles --work-tree=$HOME "$@"; fi
+}

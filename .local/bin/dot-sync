@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# dot sync [message]  — stage, commit, pull --rebase and push the dotfiles repo
+# on whatever branch is checked out (main on desktop, laptop on the laptop).
+#   -n / --dry-run   show what would be committed, then stop
+set -euo pipefail
+
+dot() { git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" "$@"; }
+cd "$HOME"
+
+dry=0
+if [[ ${1:-} == -n || ${1:-} == --dry-run ]]; then dry=1; shift; fi
+msg=${*:-}
+
+list="$HOME/.config/dotfiles/tracked"
+host=$(cat /etc/hostname 2>/dev/null || uname -n)
+branch=$(dot symbolic-ref --short HEAD)
+
+# 1. new files inside the watched folders
+if [[ -f $list ]]; then
+  mapfile -t dirs < <(grep -vE '^\s*(#|$)' "$list")
+  existing=()
+  for d in "${dirs[@]}"; do [[ -e $d ]] && existing+=("$d"); done
+  ((${#existing[@]})) && dot add -- "${existing[@]}"
+fi
+# 2. edits/deletions to everything already tracked
+dot add -u
+
+if dot diff --cached --quiet; then
+  echo "Nothing to commit."
+else
+  dot -c color.status=always status --short | sed 's/^/  /'
+  if ((dry)); then
+    echo "(dry run, unstaging)"; dot reset -q; exit 0
+  fi
+  if [[ -z $msg ]]; then
+    # auto message: "sync shura: hypr, quickshell"
+    areas=$(dot diff --cached --name-only |
+      sed -E 's#^\.config/([^/]+).*#\1#; s#^\.local/share/([^/]+).*#\1#; s#^\.claude/.*#claude#; s#/.*##' |
+      sort -u | paste -sd, | sed 's/,/, /g')
+    msg="sync $host: $areas"
+  fi
+  dot commit -q -m "$msg"
+  echo "Committed: $msg"
+fi
+((dry)) && exit 0
+
+dot pull --rebase --autostash -q origin "$branch"
+dot push -q origin "$branch"
+echo "Pushed $branch → origin/$branch"
