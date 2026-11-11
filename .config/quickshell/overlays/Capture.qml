@@ -85,8 +85,9 @@ Scope {
 				{ id: "screen", label: "Screen" }, { id: "all", label: "All" } ]
 			readonly property var actions: [
 				{ id: "copy", label: "Copy" }, { id: "save", label: "Save" }, { id: "edit", label: "Edit" } ]
-			readonly property bool canRecord: Capture.mode === "region" || Capture.mode === "screen"
-			readonly property var rowSizes: [4, 3, 3]
+				.filter(a => a.id === "copy" ? Capture.canCopy : a.id === "edit" ? Capture.canEdit : true)
+			readonly property bool canRecord: Capture.canRecord && (Capture.mode === "region" || Capture.mode === "screen")
+			readonly property var rowSizes: [4, actions.length, Capture.canRecord ? 3 : 1]
 
 			property int row: 0
 			property int col: 0
@@ -128,9 +129,9 @@ Scope {
 				else if (t === "r") Capture.mode = "region";
 				else if (t === "w") Capture.mode = "window";
 				else if (t === "f") Capture.mode = "screen";
-				else if (t === "c") Capture.action = "copy";
+				else if (t === "c" && Capture.canCopy) Capture.action = "copy";
 				else if (t === "v") Capture.action = "save";
-				else if (t === "e") Capture.action = "edit";
+				else if (t === "e" && Capture.canEdit) Capture.action = "edit";
 				else return false;
 				return true;
 			}
@@ -219,6 +220,7 @@ Scope {
 								onActivated: { win.focusAt(2, 0); win.activate(); }
 							}
 							Chip {
+								visible: Capture.canRecord
 								big: true
 								enabled: win.canRecord
 								icon: Icons.film
@@ -228,6 +230,7 @@ Scope {
 								onActivated: { win.focusAt(2, 1); win.activate(); }
 							}
 							Row {
+								visible: Capture.canRecord
 								spacing: Theme.spacing
 								anchors.verticalCenter: parent.verticalCenter
 								opacity: win.canRecord ? 1 : 0.45
@@ -246,6 +249,7 @@ Scope {
 							}
 						}
 						Txt {
+							visible: Capture.canRecord
 							text: win.canRecord ? "Enter activates · Esc closes" : "Recording supports Region and Screen only"
 							size: Theme.fontSmall
 							muted: true

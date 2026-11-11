@@ -206,7 +206,7 @@ Singleton {
 	Process {
 		id: vpnProc
 		command: ["nmcli", "-t", "-f", "NAME,TYPE,ACTIVE", "con", "show"]
-		running: true
+		running: root.available
 		stdout: StdioCollector {
 			onStreamFinished: {
 				var out = [];
@@ -225,17 +225,19 @@ Singleton {
 	Timer { id: vpnTimer; interval: 400; onTriggered: if (!vpnProc.running) vpnProc.running = true }
 	Process {
 		command: ["nmcli", "monitor"]
-		running: true
+		running: root.available
 		stdout: SplitParser { onRead: vpnTimer.restart() }
 	}
 
 	// ---- speed test ----
 	property bool speedRunning: false
 	property string speedError: ""
+	readonly property bool available: Deps.has("nmcli")
+	readonly property bool speedtestAvailable: Deps.has("speedtest")
 	property var speedResult: null   // { down, up (Mbps), ping (ms), server, isp, time }
 
 	function runSpeedtest() {
-		if (speedRunning) return;
+		if (speedRunning || !speedtestAvailable) return;
 		speedError = "";
 		speedRunning = true;
 		speedProc.running = true;

@@ -6,6 +6,7 @@ import Quickshell.Io
 import qs.config
 
 // Docker containers on configurable hosts (local or over ssh) plus local libvirt VMs.
+// Hosts whose tool is missing are dropped; VMs need virsh. `available` = any host or VMs.
 // Hosts: Settings.opt("containerHosts", [{name, ssh}]) - empty "ssh" = this PC.
 // Nothing runs unless something holds a watcher (the docker overlay does while open):
 //   watchers > 0 -> refresh now, every 10 s, and stream `docker events` for the local host.
@@ -16,7 +17,11 @@ Singleton {
 
 	property int watchers: 0
 	property string lastTab: ""   // last tab shown by the docker overlay
+	// Configured hosts, minus those whose tool is missing (docker for this PC, ssh for remotes).
 	readonly property var hosts: Settings.opt("containerHosts", [{ name: "This PC", ssh: "" }, { name: "headless", ssh: "headless" }])
+		.filter(h => Deps.has(h.ssh ? "ssh" : "docker"))
+	readonly property bool hasVms: Deps.has("virsh")
+	readonly property bool available: hosts.length > 0 || hasVms
 	property var hostStates: ({})
 	property var vms: []
 	property string vmError: ""
@@ -97,7 +102,7 @@ Singleton {
 	function refreshHost(name) { var h = registry[name]; if (h) h.refresh(); }
 	function refreshAll() {
 		for (var k in registry) registry[k].refresh();
-		if (!vmList.running) vmList.running = true;
+		if (hasVms && !vmList.running) vmList.running = true;
 	}
 
 	Timer {

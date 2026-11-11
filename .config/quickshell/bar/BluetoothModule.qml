@@ -8,6 +8,7 @@ import qs.widgets
 BarButton {
 	property var screen
 	visible: Bt.available
+	width: visible ? implicitWidth : 0
 	popout: "bluetooth"
 	icon: Icons.bluetooth
 	text: Bt.connectedCount > 1 ? String(Bt.connectedCount) : ""

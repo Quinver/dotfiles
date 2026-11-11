@@ -83,7 +83,7 @@ Singleton {
 	}
 
 	Process {
-		running: root.active
+		running: root.active && Deps.has("python3")
 		command: ["python3", Quickshell.shellDir + "/scripts/procs.py", "1500"]
 		stdout: SplitParser {
 			onRead: line => {

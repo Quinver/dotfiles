@@ -52,7 +52,7 @@ LazyLoader {
 		// ---- tabs ----
 		readonly property var tabs: {
 			var out = Containers.hosts.map(h => ({ name: h.name, label: h.ssh ? h.name : "This PC", vm: false }));
-			out.push({ name: "Virtual machines", label: "Virtual machines", vm: true });
+			if (Containers.hasVms) out.push({ name: "Virtual machines", label: "Virtual machines", vm: true });
 			return out;
 		}
 		readonly property int tabIdx: Math.max(0, tabs.findIndex(t => t.name === Containers.lastTab))

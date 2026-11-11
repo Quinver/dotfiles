@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
 
 // Claude Code and opencode usage for the AI panel. Data comes from
 // scripts/ai_usage.py; it is only collected while the panel is open
@@ -12,11 +13,15 @@ Singleton {
 	property var info: ({})
 	property bool loading: false
 	property int watchers: 0
+	// Something to report: Claude credentials or opencode, and python for the script.
+	readonly property bool hasClaude: Deps.exists(Settings.home + "/.claude/.credentials.json")
+	readonly property bool hasOpencode: Deps.has("opencode")
+	readonly property bool available: Deps.has("python3") && (hasClaude || hasOpencode)
 	readonly property var claude: info.claude || ({})
 	readonly property var opencode: info.opencode || ({})
 
 	function refresh() {
-		if (proc.running) return;
+		if (!available || proc.running) return;
 		loading = true;
 		proc.running = true;
 	}

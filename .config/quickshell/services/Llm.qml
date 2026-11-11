@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.config
+import qs.services
 
 // Local llama.cpp server (docker container) status + controls.
 // state: "off" | "connecting" | "up" | "unhealthy". `available` is false when
@@ -14,7 +15,7 @@ Singleton {
 	readonly property string container: Settings.opt("llmContainer", "qwen-llamacpp")
 	readonly property string script: Settings.expand(Settings.opt("llmToggle", "~/projects/local-llm/main/toggle-llama.sh"))
 	property string state: "off"
-	property bool available: false
+	readonly property bool available: Deps.has("docker") && Deps.exists(script)
 	property int _fast: 0           // fast polls left after a toggle/restart
 
 	function toggle() { Quickshell.execDetached([script]); _kick(); }
@@ -25,12 +26,6 @@ Singleton {
 	}
 
 	function _kick() { _fast = 5; poll.interval = 3000; poll.restart(); }
-
-	Process {
-		running: true
-		command: ["sh", "-c", "command -v docker >/dev/null && test -f \"$1\"", "sh", root.script]
-		onExited: code => { root.available = code === 0; }
-	}
 
 	Process {
 		id: probe

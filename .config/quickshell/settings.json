@@ -36,6 +36,7 @@
 		],
 		"barRight": [
 			"Media",
+			"Canvas",
 			"Llm",
 			"System",
 			"Network",

@@ -202,6 +202,7 @@ Column {
 	}
 
 	Header {
+		visible: Net.speedtestAvailable
 		width: parent.width
 		title: "Speed test"
 		Btn {
@@ -245,7 +246,7 @@ Column {
 	}
 
 	Txt {
-		visible: !Net.speedRunning && !Net.speedResult && Net.speedError === ""
+		visible: Net.speedtestAvailable && !Net.speedRunning && !Net.speedResult && Net.speedError === ""
 		width: parent.width
 		height: Theme.rowHeight
 		horizontalAlignment: Text.AlignHCenter
@@ -299,6 +300,7 @@ Column {
 	Sep { width: parent.width }
 
 	Btn {
+		visible: Deps.has("nm-connection-editor")
 		width: parent.width
 		flat: true
 		icon: Icons.cog

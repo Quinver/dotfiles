@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import qs.services
 
 // Which popout / overlay is open, and where.
 //
@@ -9,6 +10,7 @@ import Quickshell.Hyprland
 //   Ui.toggle("audio")            popout on the focused monitor (keybinds / IPC)
 //   Ui.toggleOverlay("launcher")  full-screen overlay (launcher, power, ...)
 //   Ui.close()
+// Features backed by an optional tool refuse to open while unavailable(name) is true.
 Singleton {
 	id: root
 
@@ -51,7 +53,23 @@ Singleton {
 		return null;
 	}
 
+	// False for popouts / overlays whose external tools are missing.
+	function usable(name) {
+		switch (name) {
+		case "ai": return Llm.available || AiUsage.available;
+		case "network": return Net.available;
+		case "clipboard": return Clipboard.available;
+		case "docker": return Containers.available;
+		case "games": return Games.available;
+		case "capture": return Capture.available;
+		case "tasks": return Deps.has("python3");
+		case "keys": return Deps.exists(Keybinds.path);
+		default: return true;
+		}
+	}
+
 	function open(name, item) {
+		if (!usable(name)) return;
 		var s = screenOf(item);
 		if (!item) item = buttonFor(name, s);
 		overlay = "";
@@ -61,6 +79,7 @@ Singleton {
 	}
 
 	function toggle(name, item) {
+		if (!usable(name)) return;
 		var s = screenOf(item);
 		if (popout === name && screen === s) close();
 		else open(name, item);
@@ -69,6 +88,7 @@ Singleton {
 	function isOpen(name, item) { return popout === name && screen === screenOf(item); }
 
 	function toggleOverlay(name) {
+		if (!usable(name)) return;
 		if (overlay === name) { overlay = ""; return; }
 		popout = "";
 		overlayScreen = focusedScreen();

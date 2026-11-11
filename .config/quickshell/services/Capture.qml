@@ -12,6 +12,12 @@ import qs.services
 Singleton {
 	id: root
 
+	// Screenshots need grim + slurp; each extra feature hides without its tool.
+	readonly property bool available: Deps.has("grim") && Deps.has("slurp")
+	readonly property bool canRecord: available && Deps.has("wf-recorder")
+	readonly property bool canCopy: Deps.has("wl-copy")
+	readonly property bool canEdit: Deps.has("satty")
+
 	property string mode: "region"
 	property string action: "copy"
 	property bool audio: false
@@ -54,7 +60,9 @@ Singleton {
 
 	function shot(mode, action) {
 		if (["region", "window", "screen", "all"].indexOf(mode) < 0) return;
-		if (["copy", "save", "edit"].indexOf(action) < 0) return;
+		if (!available || ["copy", "save", "edit"].indexOf(action) < 0) return;
+		if (action === "copy" && !canCopy) action = "save";
+		if (action === "edit" && !canEdit) action = "save";
 		root.mode = mode;
 		root.action = action;
 		var mon = Ui.overlayScreen ? Ui.overlayScreen.name : (Ui.focusedScreen() ? Ui.focusedScreen().name : "");
@@ -86,7 +94,7 @@ Singleton {
 	}
 
 	function startRecord(mode, audio) {
-		if (recording || recProc.running || geoProc.running) return;
+		if (!canRecord || recording || recProc.running || geoProc.running) return;
 		if (mode !== "region" && mode !== "screen") return;
 		root.mode = mode;
 		root.audio = audio;

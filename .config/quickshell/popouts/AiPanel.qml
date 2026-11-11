@@ -12,7 +12,7 @@ Column {
 	width: Theme.popoutWidth
 	spacing: Theme.spacing
 
-	readonly property string tab: Settings.state.aiTab === "opencode" ? "opencode" : "claude"
+	readonly property string tab: AiUsage.hasOpencode && (Settings.state.aiTab === "opencode" || !AiUsage.hasClaude) ? "opencode" : "claude"
 	readonly property bool isClaude: tab === "claude"
 	readonly property var c: AiUsage.claude
 	readonly property var o: AiUsage.opencode
@@ -45,7 +45,7 @@ Column {
 		return Math.floor(m / 1440) + "d ago";
 	}
 
-	Component.onCompleted: { AiUsage.watchers++; AiUsage.refresh(); }
+	Component.onCompleted: { AiUsage.watchers++; if (AiUsage.available) AiUsage.refresh(); }
 	Component.onDestruction: AiUsage.watchers--
 
 	component Stat: Row {
@@ -74,6 +74,7 @@ Column {
 
 	// ---- Local LLM ----
 	Header {
+		visible: Llm.available
 		width: parent.width
 		title: "Local LLM"
 		Txt {
@@ -83,6 +84,7 @@ Column {
 		}
 	}
 	Row {
+		visible: Llm.available
 		width: parent.width
 		spacing: Theme.spacing
 		Btn {
@@ -101,12 +103,13 @@ Column {
 			onClicked: Llm.restart()
 		}
 	}
-	Txt { width: parent.width; text: Llm.container; mono: true; muted: true; size: Theme.fontSmall }
+	Txt { visible: Llm.available; width: parent.width; text: Llm.container; mono: true; muted: true; size: Theme.fontSmall }
 
-	Sep { width: parent.width }
+	Sep { visible: Llm.available && AiUsage.available; width: parent.width }
 
 	// ---- Claude / opencode ----
 	Row {
+		visible: AiUsage.hasClaude && AiUsage.hasOpencode
 		width: parent.width
 		spacing: Theme.spacing
 		Btn { width: (parent.width - parent.spacing) / 2; text: "Claude"; checked: root.isClaude; onClicked: Settings.setState("aiTab", "claude") }
@@ -114,14 +117,14 @@ Column {
 	}
 
 	Txt {
-		visible: AiUsage.loading && !AiUsage.info.generated
+		visible: AiUsage.available && AiUsage.loading && !AiUsage.info.generated
 		text: "Reading usage…"
 		muted: true
 	}
 
 	// Claude
 	Column {
-		visible: root.isClaude && !!AiUsage.info.generated
+		visible: AiUsage.available && root.isClaude && !!AiUsage.info.generated
 		width: parent.width
 		spacing: Theme.spacing
 
@@ -195,7 +198,7 @@ Column {
 
 	// opencode
 	Column {
-		visible: !root.isClaude && !!AiUsage.info.generated
+		visible: AiUsage.available && !root.isClaude && !!AiUsage.info.generated
 		width: parent.width
 		spacing: Theme.spacing
 

@@ -111,6 +111,8 @@ Singleton {
 	readonly property string arch: ""
 	readonly property string firefox: ""
 	readonly property string discord: ""
+	readonly property string graduation: ""
+	readonly property string book: ""
 	// Material Design glyphs above U+FFFF must be written as surrogate pairs.
 	readonly property string memory: "󰍛"
 	readonly property string cpu: "󰻠"

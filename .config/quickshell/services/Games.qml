@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.services
 
 // Installed games (Steam, Faugus, Prism) and Steam accounts for the games
 // overlay. Data comes from scripts/games.py; the overlay calls refresh() when it
@@ -13,10 +14,12 @@ Singleton {
 	property var games: []
 	property bool loading: false
 	property bool loaded: false
+	readonly property bool available: Deps.has("python3")
+		&& (Deps.has("steam") || Deps.has("faugus-launcher") || Deps.has("prismlauncher"))
 	readonly property string script: Quickshell.shellDir + "/scripts/games.py"
 
 	function refresh() {
-		if (listProc.running) return;
+		if (!available || listProc.running) return;
 		loading = true;
 		listProc.running = true;
 	}

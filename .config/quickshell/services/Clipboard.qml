@@ -16,8 +16,9 @@ Singleton {
 
 	readonly property int maxEntries: 100
 	property var entries: []
+	readonly property bool available: Deps.has("cliphist") && Deps.has("wl-copy")
 
-	function refresh() { if (!lister.running) lister.running = true; }
+	function refresh() { if (available && !lister.running) lister.running = true; }
 	function copy(line) { _run(["sh", "-c", "printf '%s' \"$1\" | cliphist decode | wl-copy", "_", line]); }
 	function remove(line) {
 		root.entries = root.entries.filter(e => e.line !== line);
