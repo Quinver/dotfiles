@@ -42,7 +42,10 @@ def creds(argv):
                 break
     if token and not url:
         url = DEFAULT_URL
-    return token, url.rstrip("/")
+    url = url.rstrip("/")
+    if url and not url.endswith("/api/v1"):
+        url += "/api/v1"
+    return token, url
 
 
 def iso(dt):
